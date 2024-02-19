@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+import subprocess
+import os
+import shutil
+import psutil
+import time
+
+def dev(msg):
+    print("[b2m build] " + msg)
+
+def run_command(command):
+    try:
+        subprocess.run(command, shell=True, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+if run_command("cargo build --target i686-pc-windows-msvc"):
+    dev("Cargo build successful.")
+
+    for proc in psutil.process_iter():
+        if proc.name() == "srcds.exe":
+            proc.kill()
+            dev("Killed srcds.exe")
+
+    src_file = "C:/Users/dev/Desktop/b2m/target/i686-pc-windows-msvc/debug/b2m.dll"
+    dest_file = "D:/Projects/AutumnRP/steamapps/common/GarrysModDS/garrysmod/lua/bin/gmsv_b2m_win32.dll"
+    if os.path.exists(src_file):
+        if os.path.exists(dest_file):
+            os.remove(dest_file)
+            dev(f"Existing file {dest_file} removed.")
+        shutil.move(src_file, dest_file)
+        dev(f"File moved successfully.")
+    else:
+        dev(f"File {src_file} not found.")
+
+    start_bat_path = "D:/Projects/AutumnRP/steamapps/common/GarrysModDS/start.bat"
+    if os.path.exists(start_bat_path):
+        subprocess.Popen(start_bat_path, shell=True)
+        dev("Starting server.")
+    else:
+        dev("start.bat not found.")
+else:
+    dev("Cargo build failed.")
