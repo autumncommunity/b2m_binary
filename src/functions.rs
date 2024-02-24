@@ -26,7 +26,7 @@ unsafe fn check_module(name: String, version: String) -> bool {
     let full_name: String = get_module_full_name(name.clone());
     let crc32: u32 = calc_crc32_file(format!("{}{}", "./garrysmod/lua/bin/", &full_name)); // * .dll can be not only in garrysmod/lua/bin
 
-    println!("Module:\n\t{}\n\t{}\n\t{}", name, crc32, version);
+    //println!("Module:\n\t{}\n\t{}\n\t{}", name, crc32, version); // its dev print
 
     if crc32 == 0 {
         download_dll(&CLIENT, full_name, name, version);
@@ -128,8 +128,6 @@ unsafe extern "C-unwind" fn check_packages(lua: State) -> i32 {
                 }
             }
         }
-
-        println!("-> {:?}", json_sus);
     });
 
     0

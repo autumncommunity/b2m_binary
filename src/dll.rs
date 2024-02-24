@@ -40,11 +40,7 @@ pub fn remove_dll(name: String) {
     let full_path = format!("./garrysmod/lua/bin/{}", name);
     let path = Path::new(&full_path);
 
-    println!("try");
-    println!("{}", name);
-
     if path.exists() && path.is_file() {
-        println!("not try: )");
         let _ = fs::remove_file(path);
     }
 }

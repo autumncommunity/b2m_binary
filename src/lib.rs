@@ -96,6 +96,5 @@ unsafe fn gmod13_open(lua: State) -> i32 {
 
 #[gmod13_close]
 fn gmod13_close(_lua: State) -> i32 {
-    println!("Goodbye from binary module!");
     0
 }
