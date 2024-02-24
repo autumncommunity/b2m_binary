@@ -11,3 +11,13 @@ rustup override set nightly
 ```bash
 cargo build
 ```
+
+# Binary modules requiring example
+
+```lua
+if not b2m.Require("chttp") then
+    print("Binary module chttp cannot be loaded")
+
+    return
+end
+```
