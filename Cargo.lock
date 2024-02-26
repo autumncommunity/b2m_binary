@@ -30,6 +30,7 @@ dependencies = [
  "crc32fast",
  "gmod",
  "lazy_static",
+ "libc",
  "reqwest",
  "serde_json",
  "valve_kv_tools",
