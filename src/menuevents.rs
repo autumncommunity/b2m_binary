@@ -1,68 +1,62 @@
-use gmod::{detour::Function, lua::State};
-use libc::{c_char, c_int};
+use gmod::lua::State;
+use libc::{c_char, c_int, c_void};
 use std::{ffi::CString, ptr::null};
 
-// TODO: make this
-
+#[allow(non_snake_case)]
 trait IGameEventManager2 {
-    fn load_events_from_file(&self, filename: &str) -> i32;
     fn Reset(&self);
-    fn add_listener(
-        &self,
-        listener: &dyn IGameEventListener2,
-        name: &str,
-        b_server_side: bool,
-    ) -> bool;
-
-    fn find_listener(&self, listener: &dyn IGameEventListener2, name: &str) -> bool;
-    fn remove_listener(&self, listener: &dyn IGameEventListener2);
-    fn create_event(&self, name: &str, b_force: bool) -> Option<Box<dyn IGameEvent>>;
-    fn fire_event(&self, event: Box<dyn IGameEvent>, b_dont_broadcast: bool) -> bool;
-    fn fire_event_client_side(&self, event: Box<dyn IGameEvent>) -> bool;
-    fn duplicate_event(&self, event: Box<dyn IGameEvent>) -> Box<dyn IGameEvent>;
-    fn free_event(&self, event: Box<dyn IGameEvent>);
-    fn serialize_event(&self, event: Box<dyn IGameEvent>, buf: &mut bf_write) -> bool;
-    fn unserialize_event(&self, buf: &mut bf_read) -> Box<dyn IGameEvent>; // create new KeyValues, must be deleted
 }
 
-impl dyn IGameEventManager2 {
-    fn Reset(&self) {}
+unsafe extern "C-unwind" fn listen(_lua: State) -> i32 {
+    0
 }
 
-//impl Debug for dyn IGameEventListener2 {}
+unsafe fn initialize_lua(lua: State) {
+    let string_gameevent: *const i8 = lua_string!("gameevent");
+    let string_listen: *const i8 = lua_string!("Listen");
 
-trait IGameEventListener2 {}
+    lua.get_global(string_gameevent);
 
-trait IGameEvent {}
+    if lua.is_nil(-1) {
+        lua.pop();
+        lua.new_table();
+    }
 
-#[allow(non_camel_case_types)]
-#[allow(dead_code)]
-struct bf_write {}
+    lua.push_function(listen);
+    lua.set_field(-2, string_listen);
 
-#[allow(non_camel_case_types)]
-#[allow(dead_code)]
-struct bf_read {}
+    lua.set_global(string_gameevent);
+}
 
-pub unsafe fn initialize(_lua: State) {
+pub unsafe fn initialize(lua: State) {
     let (engine, _engine_path): (gmod::libloading::Library, &'static str) =
         open_library!("engine").expect("Failed to open engine.dll!");
 
+    // пушим таблицу gameevent в луа
+
+    initialize_lua(lua);
+
+    // получаем функцию CreateInterfaceFn factory
     let interface: gmod::libloading::Symbol<
         unsafe extern "C" fn(*const c_char, *const c_int) -> *mut dyn IGameEventManager2,
     > = engine
         .get(b"CreateInterface")
         .expect("Couldn't get CreateInterface"); // возвращает адрес как символ
 
-    println!("Interface: {:?}", interface);
+    // Принтим адрес interface
+    println!("Interface address: {:p}", &interface);
 
-    let arg_string: CString = CString::new("GAMEEVENTSMANAGER002").unwrap();
+    // Обьявляем class_name of GAMEEVENTSMANAGER002
+    let class_name: CString = CString::new("GAMEEVENTSMANAGER002").unwrap();
 
-    if !interface.to_ptr().is_null() {
-        let res: *mut dyn IGameEventManager2 = interface(arg_string.as_ptr(), null());
-        println!("{:p}", &res);
+    // Гетмаем event_manager
+    let event_manager_ptr = interface(class_name.as_ptr(), null());
 
-        let event_manager = &mut *res;
+    // Принтим адрес event_manager
+    println!("Event Manager address: {:p}", &event_manager_ptr); // принтим адрес
+    println!("Event Manager is null: {}", event_manager_ptr.is_null());
 
-        //IGameEventManager2::Reset(event_manager);
-    }
+    let event_manager: Box<dyn IGameEventManager2> = unsafe { Box::from_raw(event_manager_ptr) };
+
+    event_manager.Reset();
 }
