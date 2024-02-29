@@ -57,6 +57,4 @@ pub unsafe fn initialize(lua: State) {
     println!("Event Manager is null: {}", event_manager_ptr.is_null());
 
     let event_manager: Box<dyn IGameEventManager2> = unsafe { Box::from_raw(event_manager_ptr) };
-
-    event_manager.Reset();
 }
