@@ -6,7 +6,6 @@ extern crate gmod;
 mod crc32;
 mod dll;
 mod functions;
-mod menuevents;
 
 use gmod::lua::State;
 use lazy_static::lazy_static;
@@ -88,8 +87,6 @@ unsafe fn gmod13_open(lua: State) -> i32 {
     print(lua, "Join us! https://discord.gg/HspPfVkHGh");
 
     functions::initialize(lua);
-
-    menuevents::initialize(lua);
 
     0
 }
