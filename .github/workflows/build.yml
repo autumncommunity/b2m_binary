@@ -1,0 +1,43 @@
+name: B2M Build
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Rust Nightly
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+
+    - name: Build for Windows (i686)
+      run: cargo build --target i686-pc-windows-msvc
+
+    - name: Build for Windows (x86_64)
+      run: cargo build --target x86_64-pc-windows-msvc
+
+    - name: Build for Linux (i686)
+      run: cargo build --target i686-unknown-linux-gnu
+
+    - name: Build for Linux (x86_64)
+      run: cargo build --target x86_64-unknown-linux-gnu
+
+    - name: Rename artifacts
+      run: |
+        if [ "$(uname)" == "Linux" ]; then
+          mv target/debug/b2m.dll target/debug/gmsv_b2m_linux$(uname -m).dll
+        else
+          mv target/debug/b2m.dll target/debug/gmsv_b2m_win$(uname -m).dll
+        fi
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: rust-artifacts
+        path: target/debug/*
