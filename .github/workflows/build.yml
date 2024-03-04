@@ -13,6 +13,9 @@ jobs:
       TARGET: i686-udefault nknown-linux-gnu
     steps:
     - uses: actions/checkout@v2
+    - run: |
+        rustup install nightly
+        rustup default nightly
     - uses: actions-rs/toolchain@v1
       with:
         profile: default
