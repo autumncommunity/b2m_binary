@@ -21,7 +21,7 @@ jobs:
         profile: default
         toolchain: nightly
     - run: cargo build --release
-    - run: ls ./target/
+    - run: ls ./target/release
     - uses: actions/upload-artifact@v2
       with:
         name: gmsv_b2m_linux.dll
