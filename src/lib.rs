@@ -47,10 +47,6 @@ unsafe fn print(lua: State, message: &str) {
     lua.call(4, 0);
 }
 
-fn get_is_client() -> bool {
-    *IS_CLIENT.lock().unwrap()
-}
-
 unsafe fn get_module_full_name(name: String) -> String {
     format!("{}_{}_{}.dll", get_module_prefix(), name, get_platform())
 }
@@ -79,10 +75,6 @@ fn get_platform() -> &'static str {
 
 #[gmod13_open]
 unsafe fn gmod13_open(lua: State) -> i32 {
-    // set IS_CLIENT boolean
-    let mut is_client = IS_CLIENT.lock().unwrap();
-    *is_client = lua.is_client();
-
     print(lua, "B2M by autumncommunity");
     print(lua, "Join us! https://discord.gg/HspPfVkHGh");
 

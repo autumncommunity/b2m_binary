@@ -36,7 +36,10 @@ rustup override set nightly
 ```
 ### Build
 ```bash
-cargo build
+cargo build --target i686-pc-windows-msvc // win32
+cargo build --target x86_64-pc-windows-msvc // win64
+cargo build --target i686-unknown-linux-gnu // linux (x32)
+cargo build --target x86_64-unknown-linux-gnu // linux64
 ```
 
 # Examples

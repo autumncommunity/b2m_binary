@@ -1,4 +1,4 @@
-use crate::{get_is_client, get_platform};
+use crate::get_platform;
 use reqwest::blocking::*;
 use std::{
     fs::{self, File},
@@ -11,14 +11,20 @@ use std::{
 // он будет скачивать модули, то когда клиент начнёт
 // запускать Lua файлы, модуль не будет скачан, что может
 // привести к ошибкам
-pub fn download_dll(client: &Client, full_name: String, name: String, version: String) {
+pub fn download_dll(
+    client: &Client,
+    full_name: String,
+    name: String,
+    version: String,
+    client_only: bool,
+) {
     let mut res = client
         .get(format!(
-            "http://localhost/downloadBinary?name={}&version={}&platform={}&side={}",
+            "https://autumngmod.ru/b2m/downloadBinary?name={}&version={}&platform={}&side={}",
             name,
             version,
             get_platform(),
-            if get_is_client() { "cl" } else { "sv" }
+            if client_only { "cl" } else { "sv" }
         ))
         .send()
         .expect("Couldn't send HTTP request");

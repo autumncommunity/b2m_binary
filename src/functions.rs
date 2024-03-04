@@ -1,7 +1,7 @@
 use crate::{
     crc32::calc_crc32_file,
     dll::{download_dll, remove_dll},
-    get_is_client, get_module_full_name, get_module_prefix, get_platform, print,
+    get_module_full_name, get_platform, print,
 };
 use gmod::lua::State;
 use lazy_static::lazy_static;
@@ -22,25 +22,23 @@ unsafe extern "C-unwind" fn lua_print(lua: State) -> i32 {
 
 // TODO: * version is latest
 // возвращает bool; если true то модуль был скачан, если false то иди нахуй
-unsafe fn check_module(name: String, version: String) -> bool {
+unsafe fn check_module(name: String, version: String, client_only: bool) -> bool {
     let full_name: String = get_module_full_name(name.clone());
     let crc32: u32 = calc_crc32_file(format!("{}{}", "./garrysmod/lua/bin/", &full_name)); // * .dll can be not only in garrysmod/lua/bin
 
-    //println!("Module:\n\t{}\n\t{}\n\t{}", name, crc32, version); // its dev print
-
     if crc32 == 0 {
-        download_dll(&CLIENT, full_name, name, version);
+        download_dll(&CLIENT, full_name, name, version, client_only);
 
         return true;
     }
 
     let res = CLIENT
         .get(format!(
-            "http://localhost/api/packages/getCRC32?name={}&version={}&platform={}&side={}",
+            "https://autumngmod.ru/b2m/api/packages/getCRC32?name={}&version={}&platform={}&side={}",
             name,
             version,
             get_platform(),
-            if get_is_client() { "cl" } else { "sv" }
+            if client_only { "cl" } else { "sv" }
         ))
         .send()
         .expect("Couldn't send HTTP request");
@@ -63,7 +61,7 @@ unsafe fn check_module(name: String, version: String) -> bool {
     }
 
     if sv_crc32 != crc32 {
-        download_dll(&CLIENT, full_name, name, version);
+        download_dll(&CLIENT, full_name, name, version, client_only);
 
         return true;
     }
@@ -74,12 +72,13 @@ unsafe fn check_module(name: String, version: String) -> bool {
 unsafe extern "C-unwind" fn lua_check_module(lua: State) -> i32 {
     let name: String = lua.check_string(1).to_string();
     let version: String = lua.check_string(2).to_string();
-    let is_downloading: bool = check_module(name.clone(), version);
+    let client_only: bool = lua.check_boolean(3);
+    let is_downloading: bool = check_module(name.clone(), version, client_only);
 
     if is_downloading {
         let res = CLIENT
             .get(format!(
-                "http://localhost/api/packages/getVersion?name={}",
+                "https://autumngmod.ru/b2m/api/packages/getVersion?name={}",
                 name
             ))
             .send()
@@ -99,32 +98,33 @@ unsafe extern "C-unwind" fn lua_check_module(lua: State) -> i32 {
 
 unsafe extern "C-unwind" fn check_packages(lua: State) -> i32 {
     let ip = lua.check_string(1).to_string();
-    let prefix = get_module_prefix();
-
-    print(lua, &prefix);
 
     //Выводим все это в отдельный поток, чтобы не блокировать поток Lua
 
     thread::spawn(move || {
         let res = CLIENT
             .get(&format!(
-                "http://localhost/api/packages/getServer?serverIP={}",
+                "https://autumngmod.ru/b2m/api/packages/getServer?serverIP={}",
                 ip
             ))
             .send()
             .expect("Failed to send request");
 
-        if !res.status().is_success() {
+        let status = res.status();
+        let text = res.text();
+        let txt = text.unwrap();
+
+        if !status.is_success() {
             return;
         }
 
-        let json_sus: Value = from_str(res.text().unwrap().as_str()).expect("an error occured");
+        let json_sus: Value = from_str(txt.as_str()).expect("an error occured");
 
         for cell in json_sus.as_object().unwrap() {
             match cell {
                 (key, value_) => {
                     let value: &str = value_.as_str().unwrap();
-                    check_module(key.to_string(), value.to_string());
+                    check_module(key.to_string(), value.to_string(), true);
                 }
             }
         }
