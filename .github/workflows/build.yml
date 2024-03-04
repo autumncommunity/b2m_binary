@@ -1,45 +1,72 @@
 name: B2M Build
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - master
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
 
+  build-win32:
+    name: Build Windows 32-bit
+    runs-on: windows-latest
+    env:
+      TARGET: i686-pc-windows-msvc
     steps:
     - uses: actions/checkout@v2
-
-    - name: Install Rust Nightly
-      uses: actions-rs/toolchain@v1
+    - uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
-
-    - name: Install target (i686)
-      run: rustup target add i686-pc-windows-msvc
-
-    - name: Install target (x86_64)
-      run: rustup target add x86_64-pc-windows-msvc
-
-    - name: Build for Windows and Linux
-      run: |
-        for target in i686-pc-windows-msvc x86_64-pc-windows-msvc i686-unknown-linux-gnu x86_64-unknown-linux-gnu; do
-          cargo build --target $target
-        done
-
-    - name: Rename artifacts
-      run: |
-        for target in i686-pc-windows-msvc x86_64-pc-windows-msvc i686-unknown-linux-gnu x86_64-unknown-linux-gnu; do
-          if [ "$(uname)" == "Linux" ]; then
-            mv target/debug/b2m.dll target/debug/gmsv_b2m_linux$(uname -m)-$target.dll
-          else
-            mv target/debug/b2m.dll target/debug/gmsv_b2m_win$(uname -m)-$target.dll
-          fi
-        done
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+    - run: cargo build --release
+    - uses: actions/upload-artifact@v2
       with:
-        name: rust-artifacts
-        path: target/debug/*
+        name: gmsv_b2m_win32.dll
+        path: target/release/b2m.dll
+
+  build-win64:
+    name: Build Windows 64-bit
+    runs-on: windows-latest
+    env:
+      TARGET: x86_64-pc-windows-msvc
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+    - run: cargo build --release
+    - uses: actions/upload-artifact@v2
+      with:
+        name: gmsv_b2m_win64.dll
+        path: target/release/b2m.dll
+
+  build-linux32:
+    name: Build Linux 32-bit
+    runs-on: ubuntu-latest
+    env:
+      TARGET: i686-unknown-linux-gnu
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+    - run: cargo build --release
+    - uses: actions/upload-artifact@v2
+      with:
+        name: gmsv_b2m_linux.dll
+        path: target/release/b2m.dll
+
+  build-linux64:
+    name: Build Linux 64-bit
+    runs-on: ubuntu-latest
+    env:
+      TARGET: x86_64-unknown-linux-gnu
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+    - run: cargo build --release
+    - uses: actions/upload-artifact@v2
+      with:
+        name: gmsv_b2m_linux64.dll
+        path: target/release/b2m.dll
