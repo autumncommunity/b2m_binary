@@ -6,67 +6,19 @@ on:
       - master
 
 jobs:
-
-  build-win32:
-    name: Build Windows 32-bit
-    runs-on: windows-latest
-    env:
-      TARGET: i686-pc-windows-msvc
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-    - run: cargo build --release
-    - uses: actions/upload-artifact@v2
-      with:
-        name: gmsv_b2m_win32.dll
-        path: target/release/b2m.dll
-
-  build-win64:
-    name: Build Windows 64-bit
-    runs-on: windows-latest
-    env:
-      TARGET: x86_64-pc-windows-msvc
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-    - run: cargo build --release
-    - uses: actions/upload-artifact@v2
-      with:
-        name: gmsv_b2m_win64.dll
-        path: target/release/b2m.dll
-
   build-linux32:
     name: Build Linux 32-bit
     runs-on: ubuntu-latest
     env:
-      TARGET: i686-unknown-linux-gnu
+      TARGET: i686-udefault nknown-linux-gnu
     steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
       with:
+        profile: default
         toolchain: nightly
     - run: cargo build --release
     - uses: actions/upload-artifact@v2
       with:
         name: gmsv_b2m_linux.dll
-        path: target/release/b2m.dll
-
-  build-linux64:
-    name: Build Linux 64-bit
-    runs-on: ubuntu-latest
-    env:
-      TARGET: x86_64-unknown-linux-gnu
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-    - run: cargo build --release
-    - uses: actions/upload-artifact@v2
-      with:
-        name: gmsv_b2m_linux64.dll
         path: target/release/b2m.dll
