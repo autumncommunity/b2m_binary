@@ -7,11 +7,6 @@ pub fn calc_crc32(text: &[u8]) -> u32 {
     hasher.finalize()
 }
 
-#[allow(dead_code)]
-pub fn calc_crc32_string(text: String) -> u32 {
-    calc_crc32(text.as_bytes())
-}
-
 pub fn calc_crc32_file(path: String) -> u32 {
     let path_obj = Path::new(&path);
     if !path_obj.exists() || path_obj.is_dir() {

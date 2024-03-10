@@ -1,13 +1,33 @@
 #!/usr/bin/python
 
+# Configurate build paths in ./paths.json
+
 import subprocess
+import json
 import os
 import shutil
 import psutil
 import time
 
+# Configuring items
+
+target = "i686-pc-windows-msvc" # You can configurate this
+arch = "win32" # You can configurate this
+project_lib_name = "b2m.dll" # You can configurate this | Name of file when project library was compiled
+is_debug = True # You can configurate this | --release or debug
+
+cwd = os.getcwd()
+paths_file = open(cwd + "\\" + "paths.json", "r")
+paths = json.loads(paths_file.read())
+server_path = paths["server_path"]
+
+if not paths:
+    print("You don't configure ./paths.json!")
+
+paths_file.close()
+
 def dev(msg):
-    print("[b2m build] " + msg)
+    print("[B2M Build] " + msg)
 
 def run_command(command):
     try:
@@ -16,16 +36,22 @@ def run_command(command):
     except subprocess.CalledProcessError:
         return False
 
-if run_command("cargo build --target i686-pc-windows-msvc"):
+dev("Current directory " + cwd)
+dev("Start build")
+
+if run_command("cargo build --target " + target):
     dev("Cargo build successful.")
 
     for proc in psutil.process_iter():
-        if proc.name() == "srcds.exe":
+        procname = proc.name()
+        if procname == "srcds.exe" or procname == "srcds":
             proc.kill()
-            dev("Killed srcds.exe")
+            dev("Killed srcds process")
 
-    src_file = "C:/Users/dev/Desktop/b2m/target/i686-pc-windows-msvc/debug/b2m.dll"
-    dest_file = "D:/Projects/AutumnRP/steamapps/common/GarrysModDS/garrysmod/lua/bin/gmsv_b2m_win32.dll"
+    time.sleep(1) # чтоб не было отказов в доступе
+
+    src_file = cwd + "\\target\\" + target + "\\" + (is_debug and "debug" or "release") + "\\" + project_lib_name
+    dest_file = server_path + "\\garrysmod\\lua\\bin\\gmsv_b2m_" + arch + ".dll"
     if os.path.exists(src_file):
         if os.path.exists(dest_file):
             os.remove(dest_file)
@@ -35,7 +61,7 @@ if run_command("cargo build --target i686-pc-windows-msvc"):
     else:
         dev(f"File {src_file} not found.")
 
-    start_bat_path = "D:/Projects/AutumnRP/steamapps/common/GarrysModDS/start.bat"
+    start_bat_path = server_path + "\\start.bat"
     if os.path.exists(start_bat_path):
         subprocess.Popen(start_bat_path, shell=True)
         dev("Starting server.")

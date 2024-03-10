@@ -2,6 +2,12 @@
   <img src="img/b2m.png" />
 </p>
 
+UPDATE:
+* + Version Checker
+* + Fix some errors
+* + Fix some logic errors
+* + Fix some backdoors
+
 <h1 align="center">
     B2M
 </h1>
@@ -35,6 +41,20 @@ The installation is very simple - you just need to transfer the B2M folder to yo
 rustup override set nightly
 ```
 ### Build
+
+#### Using python (uses cargo too)
+##### rename example.paths.json file to paths.json, and set "server_path" the path to your GarrysModDS
+
+```bash
+py build
+```
+or
+```
+python build
+```
+
+#### Using only cargo
+
 ```bash
 cargo build --target i686-pc-windows-msvc // win32
 cargo build --target x86_64-pc-windows-msvc // win64
