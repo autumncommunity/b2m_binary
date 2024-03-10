@@ -2,12 +2,6 @@
   <img src="img/b2m.png" />
 </p>
 
-UPDATE:
-* + Version Checker
-* + Fix some errors
-* + Fix some logic errors
-* + Fix some backdoors
-
 <h1 align="center">
     B2M
 </h1>
